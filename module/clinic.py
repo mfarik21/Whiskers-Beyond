@@ -7,6 +7,7 @@ from tabulate import tabulate
 from services import clinic
 from utils.helper import (
     cast_to_int,
+    dict_to_str,
     format_currency,
     get_index,
     get_int_input,
@@ -96,7 +97,8 @@ def checkout_treatment():
         show_treatment(pet_kind.name.lower())
 
         choice = get_int_input(
-            "Enter the treatment number needed for your pet: ", len(clinic)
+            "Enter the treatment number needed for your pet: ",
+            len(clinic[pet_kind.name.lower()]),
         )
 
         idx = get_index(choice)
@@ -155,3 +157,28 @@ def remove_from_basket(idx: int):
 
 def clear_basket():
     basket.clear()
+
+
+def map_basket_to_invoice():
+    return [
+        [
+            "Clinic",
+            item["treatment"],
+            dict_to_str(
+                {key: value for key, value in item.items() if key in ["kind", "name"]}
+            ),
+            1,
+            format_currency(item["price"]),
+            format_currency(item["price"]),
+        ]
+        for item in get_basket()
+    ]
+
+
+def get_total_price():
+    total_price = 0
+    if get_basket():
+        for item in get_basket():
+            total_price += item["price"]
+
+    return total_price

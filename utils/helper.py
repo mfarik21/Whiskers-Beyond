@@ -36,6 +36,15 @@ def get_int_input(prompt: str, maximum: int = None):
             print("Invalid choice! Please select a valid number.")
 
 
+def get_yes_no_input(prompt):
+    while True:
+        user_input = input(prompt).strip().upper()
+        if user_input in ["Y", "N"]:
+            return user_input
+        else:
+            print("Invalid choice! Please enter either Y or N.")
+
+
 def is_valid_num_input(num: int, len: int) -> bool:
     return num > 0 and num <= len
 
@@ -65,5 +74,5 @@ def format_currency(amount: int) -> str:
     return "Rp " + formatted_amount
 
 
-def dict_to_string(dict: Dict):
-    return " ".join(f"{key}: {value}" for key, value in dict.items())
+def dict_to_str(dict: Dict):
+    return ", ".join(f"{key}: {value}" for key, value in dict.items())

@@ -7,6 +7,7 @@ from tabulate import tabulate
 from services import supplies
 from utils.helper import (
     cast_to_int,
+    dict_to_str,
     format_currency,
     get_index,
     get_int_input,
@@ -156,3 +157,31 @@ def remove_from_basket(idx: int):
 
 def clear_basket():
     basket.clear()
+
+
+def map_basket_to_invoice():
+    return [
+        [
+            "Supplies",
+            item["name"],
+            dict_to_str(
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key in ["category", "sub_category", "type", "size"]
+                }
+            ),
+            item["qty"],
+            format_currency(item["price"]),
+            format_currency(item["qty"] * item["price"]),
+        ]
+        for item in get_basket()
+    ]
+
+
+def get_total_price():
+    total_price = 0
+    if get_basket():
+        for item in get_basket():
+            total_price += item["qty"] * item["price"]
+    return total_price

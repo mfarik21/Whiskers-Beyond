@@ -7,6 +7,7 @@ from tabulate import tabulate
 from services import hotel
 from utils.helper import (
     cast_to_int,
+    dict_to_str,
     format_currency,
     get_index,
     get_int_input,
@@ -144,7 +145,7 @@ def book_stays():
             "kind": pet_kind.name.title(),
             "name": name,
             "nights": nights,
-            "specs": f"{spec_type}: {spec_value}",
+            "specs": {"weight" if pet_kind == PetChoice.CAT else "size": spec_value},
             "price": price,
         }
 
@@ -219,3 +220,26 @@ def remove_from_basket(idx: int):
 
 def clear_basket():
     basket.clear()
+
+
+def map_basket_to_invoice():
+    return [
+        [
+            "Hotel",
+            f"{ item['nights'] } night(s) stays",
+            dict_to_str(
+                {key: value for key, value in item.items() if key in ["kind", "name"]}
+            ),
+            item["nights"],
+            format_currency(item["price"]),
+            format_currency(item["nights"] * item["price"]),
+        ]
+        for item in get_basket()
+    ]
+
+
+def get_total_price():
+    total_price = 0
+    for item in get_basket():
+        total_price += item["nights"] * item["price"]
+    return total_price

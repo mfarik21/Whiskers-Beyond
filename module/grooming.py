@@ -7,7 +7,7 @@ from tabulate import tabulate
 from services import grooming
 from utils.helper import (
     cast_to_int,
-    dict_to_string,
+    dict_to_str,
     format_currency,
     get_index,
     get_int_input,
@@ -131,9 +131,10 @@ def checkout_service():
         }
 
         show_services(pet_kind, ServiceType.MAIN.value, spec_type)
+
         prod_num = get_int_input(
             "Enter the product number you'd like: ",
-            len(grooming[pet_kind.name.lower()][ServiceType.MAIN.value]),
+            len(grooming[pet_kind.name.lower()][ServiceType.MAIN.value][spec_type]),
         )
         idx = get_index(prod_num)
 
@@ -194,7 +195,7 @@ def display_basket():
             idx,
             item["kind"],
             item["name"],
-            dict_to_string(item["specs"]),
+            dict_to_str(item["specs"]),
             item["service"]["main"]["name"],
             "Main",
             item["service"]["main"]["price"],
@@ -230,3 +231,50 @@ def remove_from_basket(idx: int):
 
 def clear_basket():
     basket.clear()
+
+
+def map_basket_to_invoice():
+
+    output = []
+
+    for item in get_basket():
+        svc_name = item["service"]["main"]["name"]
+        price = item["service"]["main"]["price"]
+
+        if "adds_on" in item["service"]:
+            addson_svc = item["service"]["adds_on"]["name"]
+            addson_price = item["service"]["adds_on"]["price"]
+            svc_name = f"{svc_name}, {addson_svc} (Adds On)"
+            price += addson_price
+
+        output.append(
+            [
+                "Grooming",
+                svc_name,
+                dict_to_str(
+                    {
+                        key: value
+                        for key, value in item.items()
+                        if key in ["kind", "name", "specs"]
+                    }
+                ),
+                1,
+                format_currency(price),
+                format_currency(price),
+            ]
+        )
+
+    return output
+
+
+def get_total_price():
+    total_price = 0
+    for item in get_basket():
+        price = item["service"]["main"]["price"]
+        if "adds_on" in item["service"]:
+            addson_price = item["service"]["adds_on"]["price"]
+            price += addson_price
+
+        total_price += price
+
+    return total_price

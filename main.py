@@ -4,10 +4,9 @@ from textwrap import dedent
 from tabulate import tabulate
 
 from module import clinic, grooming, hotel, supplies
-from utils.helper import cast_to_int, dict_to_string, format_currency, is_valid_choice
+from utils.helper import cast_to_int, is_valid_choice, get_int_input, format_currency
 from utils.interface import clear_screen, show_title
 
-whole_basket = list()
 
 
 class ServiceChoice(Enum):
@@ -15,6 +14,8 @@ class ServiceChoice(Enum):
     GROOMING = 2
     HOTEL = 3
     CLINIC = 4
+    INVOICE = 5
+    PAYMENT = 6
 
 
 def main():
@@ -24,22 +25,32 @@ def main():
         print(
             dedent(
                 """
-        Select the services that best suit your needs:
-        1. Supplies
-        2. Grooming
-        3. Hotel
-        4. Clinic
-        0. Exit
-        """
+                Select the services that best suit your needs:
+                1. Supplies
+                2. Grooming
+                3. Hotel
+                4. Clinic
+                """
             ),
             end="",
         )
 
-        display_whole_basket()
+        if get_invoice():
+            print(
+                dedent(
+                    """
+                    5. Print Invoice
+                    6. Payment
+                    """
+                ),
+                end="",
+            )
 
-        # payment
+        print("0. Exit\n")
 
-        choice = input("Enter the number corresponding to your choice: ")
+        choice = get_int_input(
+            "Enter the number corresponding to your choice: ", len(ServiceChoice)
+        )
         choice = cast_to_int(choice)
 
         if is_valid_choice(choice, ServiceChoice):
@@ -51,11 +62,40 @@ def main():
                 hotel.module()
             elif ServiceChoice(choice) == ServiceChoice.CLINIC:
                 clinic.module()
+            elif ServiceChoice(choice) == ServiceChoice.INVOICE:
+                print_invoice()
+                option = input("Do you want to continue to payment: (Y/N)? ")
+                if option.upper() == "Y":
+                    payment()
+
+                else:
+                    continue
+            elif ServiceChoice(choice) == ServiceChoice.PAYMENT:
+                payment()
+
         else:
             print("Invalid choice! Please select a valid option.")
 
 
-def display_whole_basket():
+def get_invoice():
+    invoice = []
+
+    if supplies.get_basket():
+        invoice.extend(supplies.map_basket_to_invoice())
+
+    if grooming.get_basket():
+        invoice.extend(grooming.map_basket_to_invoice())
+
+    if hotel.get_basket():
+        invoice.extend(hotel.map_basket_to_invoice())
+
+    if clinic.get_basket():
+        invoice.extend(clinic.map_basket_to_invoice())
+
+    return invoice
+
+
+def print_invoice():
     headers = [
         "#",
         "Service Type",
@@ -66,133 +106,40 @@ def display_whole_basket():
         "Subtotal",
     ]
     formatted_data = []
+    formatted_data = [[num] + arr[:] for num, arr in enumerate(get_invoice(), start=1)]
 
-    num = 1
-    if supplies.get_basket():
-        for item in supplies.get_basket():
-            formatted_data.append(
-                [
-                    num,
-                    "Supplies",
-                    item["name"],
-                    dict_to_string(
-                        {
-                            key: value
-                            for key, value in item.items()
-                            if key in ["category", "sub_category", "type", "size"]
-                        }
-                    ),
-                    item("qty"),
-                    format_currency(item["price"]),
-                    format_currency(item("qty") * item["price"]),
-                ]
-            )
-            num += 1
-
-    if grooming.get_basket():
-        for item in grooming.get_basket():
-
-            svc_name = item["service"]["main"]["name"]
-            if "adds_on" in item["service"]:
-                addson_svc = item["service"]["adds_on"]["name"]
-                svc_name = f"{svc_name}, {addson_svc} (Adds On)"
-
-            price = item["service"]["main"]["price"]
-            if "adds_on" in item["service"]:
-                addson_price = item["service"]["adds_on"]["price"]
-                price += addson_price
-
-            formatted_data.append(
-                [
-                    num,
-                    "Grooming",
-                    svc_name,
-                    dict_to_string(
-                        {
-                            key: value
-                            for key, value in item.items()
-                            if key in ["kind", "name", "specs"]
-                        }
-                    ),
-                    1,
-                    format_currency(price),
-                    format_currency(price),
-                ]
-            )
-            num += 1
-
-    if hotel.get_basket():
-        for item in hotel.get_basket():
-            formatted_data.append(
-                [
-                    num,
-                    "Hotel",
-                    f"{ item['nights'] } night(s) stays",
-                    dict_to_string(
-                        {
-                            key: value
-                            for key, value in item.items()
-                            if key in ["kind", "name"]
-                        }
-                    ),
-                    item["nights"],
-                    format_currency(item["price"]),
-                    format_currency(item["nights"] * item["price"]),
-                ]
-            )
-            num += 1
-
-    if clinic.get_basket():
-        for item in clinic.get_basket():
-            formatted_data.append(
-                [
-                    num + 1,
-                    "Clinic",
-                    item["treatment"],
-                    dict_to_string(
-                        {
-                            key: value
-                            for key, value in item.items()
-                            if key in ["kind", "name"]
-                        }
-                    ),
-                    1,
-                    format_currency(item["price"]),
-                    format_currency(item["price"]),
-                ]
-            )
-            num += 1
-
-    if formatted_data:
-        print("Basket:")
-        print(tabulate(formatted_data, headers=headers, tablefmt="simple_outline"))
+    print("Invoice:")
+    print(tabulate(formatted_data, headers=headers, tablefmt="simple_outline"))
 
 
 def count_total_price():
     total_price = 0
-    if supplies.get_basket():
-        for item in supplies.get_basket():
-            total_price += (item("qty") * item["price"],)
-
-    if grooming.get_basket():
-        for item in grooming.get_basket():
-
-            price = item["service"]["main"]["price"]
-            if "adds_on" in item["service"]:
-                addson_price = item["service"]["adds_on"]["price"]
-                price += addson_price
-
-            total_price += total_price
-
-    if hotel.get_basket():
-        for item in hotel.get_basket():
-            total_price += (item("nights") * item["price"],)
-
-    if clinic.get_basket():
-        for item in clinic.get_basket():
-            total_price += item["price"]
+    total_price += supplies.get_total_price()
+    total_price += grooming.get_total_price()
+    total_price += hotel.get_total_price()
+    total_price += clinic.get_total_price()
 
     return total_price
+
+
+def payment():
+    while True:
+        total = count_total_price()
+        print(f"Your total purchase : {format_currency(total)}")
+        money = get_int_input("Please enter the amount of money? ")
+        change = money - total
+
+        if money < total:
+            print(
+                f"Oops! It looks like your money isn't enough. You need {total - money} more. Please enter the correct amount!"
+            )
+
+        else:
+            print(f"Here's your change: {change}")
+            print("Thank you! Have a wonderful day!")
+            option = input("\nBack to Home: (Y/N)? ")
+            if option.upper() == "Y":
+                break
 
 
 if __name__ == "__main__":
