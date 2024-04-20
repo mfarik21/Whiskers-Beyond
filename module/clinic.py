@@ -10,8 +10,9 @@ from utils.helper import (
     dict_to_str,
     format_currency,
     get_index,
-    get_int_input,
+    integer_input,
     is_valid_choice,
+    yes_no_input,
 )
 from utils.interface import clear_screen, show_title
 
@@ -58,7 +59,7 @@ def module():
                 checkout_treatment()
 
             elif ClinicChoice(choice) == ClinicChoice.REMOVE:
-                num = get_int_input(
+                num = integer_input(
                     "Enter the basket number of the service you want to remove: ",
                     len(basket),
                 )
@@ -66,7 +67,9 @@ def module():
                 remove_from_basket(idx)
 
             elif ClinicChoice(choice) == ClinicChoice.CLEAR:
-                option = input("Are you sure you want to clear your basket: (Y/N)? ")
+                option = yes_no_input(
+                    "Are you sure you want to clear your basket: (Y/N)? "
+                )
                 if option.upper() == "Y":
                     clear_basket()
 
@@ -96,7 +99,7 @@ def checkout_treatment():
         name = input(f"What is your {pet_kind.name.lower()}'s name?: ")
         show_treatment(pet_kind.name.lower())
 
-        choice = get_int_input(
+        choice = integer_input(
             "Enter the treatment number needed for your pet: ",
             len(clinic[pet_kind.name.lower()]),
         )

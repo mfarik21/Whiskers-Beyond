@@ -10,8 +10,9 @@ from utils.helper import (
     dict_to_str,
     format_currency,
     get_index,
-    get_int_input,
+    integer_input,
     is_valid_choice,
+    yes_no_input,
 )
 from utils.interface import clear_screen, show_title
 
@@ -89,7 +90,7 @@ def module():
                 book_stays()
 
             elif HotelChoice(choice) == HotelChoice.REMOVE:
-                num = get_int_input(
+                num = integer_input(
                     "Enter the basket number of the service you want to remove: ",
                     len(basket),
                 )
@@ -97,7 +98,9 @@ def module():
                 remove_from_basket(idx)
 
             elif HotelChoice(choice) == HotelChoice.CLEAR:
-                option = input("Are you sure you want to clear your basket: (Y/N)? ")
+                option = yes_no_input(
+                    "Are you sure you want to clear your basket: (Y/N)? "
+                )
                 if option.upper() == "Y":
                     clear_basket()
 
@@ -126,7 +129,7 @@ def book_stays():
         )
         name = input(f"What is your {pet_kind.name.lower()}'s name?: ")
 
-        nights = get_int_input("How many nights will your pet stay? ")
+        nights = integer_input("How many nights will your pet stay? ")
 
         if pet_kind == PetChoice.CAT:
             weight = int(input("How much does your cat weigh (in kg)? "))

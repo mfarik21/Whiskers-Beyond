@@ -17,7 +17,7 @@ def is_valid_choice(choice: int, choices: Enum) -> bool:
         return False
 
 
-def get_int_input(prompt: str, maximum: int = None):
+def integer_input(prompt: str, maximum: int = None):
     while True:
         try:
             user_input = int(input(prompt))
@@ -36,7 +36,7 @@ def get_int_input(prompt: str, maximum: int = None):
             print("Invalid choice! Please select a valid number.")
 
 
-def get_yes_no_input(prompt):
+def yes_no_input(prompt):
     while True:
         user_input = input(prompt).strip().upper()
         if user_input in ["Y", "N"]:

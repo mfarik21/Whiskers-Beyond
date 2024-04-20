@@ -10,8 +10,9 @@ from utils.helper import (
     dict_to_str,
     format_currency,
     get_index,
-    get_int_input,
+    integer_input,
     is_valid_choice,
+    yes_no_input,
 )
 from utils.interface import clear_screen, show_title
 
@@ -75,7 +76,7 @@ def module():
                 checkout_service()
 
             elif GroomingChoice(choice) == GroomingChoice.REMOVE:
-                num = get_int_input(
+                num = integer_input(
                     "Enter the basket number of the service you want to remove: ",
                     len(basket),
                 )
@@ -83,7 +84,9 @@ def module():
                 remove_from_basket(idx)
 
             elif GroomingChoice(choice) == GroomingChoice.CLEAR:
-                option = input("Are you sure you want to clear your basket: (Y/N)? ")
+                option = yes_no_input(
+                    "Are you sure you want to clear your basket: (Y/N)? "
+                )
                 if option.upper() == "Y":
                     clear_basket()
 
@@ -132,7 +135,7 @@ def checkout_service():
 
         show_services(pet_kind, ServiceType.MAIN.value, spec_type)
 
-        prod_num = get_int_input(
+        prod_num = integer_input(
             "Enter the product number you'd like: ",
             len(grooming[pet_kind.name.lower()][ServiceType.MAIN.value][spec_type]),
         )
@@ -142,11 +145,11 @@ def checkout_service():
             ServiceType.MAIN.value
         ][spec_type][idx]
 
-        option = input("Do you want to add additional service: (Y/N)? ")
+        option = yes_no_input("Do you want to add additional service: (Y/N)? ")
         if option.upper() == "Y":
             print("Adds on: ")
             show_services(pet_kind, ServiceType.ADDS_ON.value, spec_type)
-            prod_num = get_int_input(
+            prod_num = integer_input(
                 "Enter the product number you'd like: ",
                 len(grooming[pet_kind.name.lower()][ServiceType.ADDS_ON.value]),
             )

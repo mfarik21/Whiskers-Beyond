@@ -4,9 +4,14 @@ from textwrap import dedent
 from tabulate import tabulate
 
 from module import clinic, grooming, hotel, supplies
-from utils.helper import cast_to_int, is_valid_choice, get_int_input, format_currency
+from utils.helper import (
+    cast_to_int,
+    format_currency,
+    integer_input,
+    is_valid_choice,
+    yes_no_input,
+)
 from utils.interface import clear_screen, show_title
-
 
 
 class ServiceChoice(Enum):
@@ -48,7 +53,7 @@ def main():
 
         print("0. Exit\n")
 
-        choice = get_int_input(
+        choice = integer_input(
             "Enter the number corresponding to your choice: ", len(ServiceChoice)
         )
         choice = cast_to_int(choice)
@@ -64,7 +69,7 @@ def main():
                 clinic.module()
             elif ServiceChoice(choice) == ServiceChoice.INVOICE:
                 print_invoice()
-                option = input("Do you want to continue to payment: (Y/N)? ")
+                option = yes_no_input("Do you want to continue to payment: (Y/N)? ")
                 if option.upper() == "Y":
                     payment()
 
@@ -126,7 +131,7 @@ def payment():
     while True:
         total = count_total_price()
         print(f"Your total purchase : {format_currency(total)}")
-        money = get_int_input("Please enter the amount of money? ")
+        money = integer_input("Please enter the amount of money? ")
         change = money - total
 
         if money < total:
@@ -137,7 +142,7 @@ def payment():
         else:
             print(f"Here's your change: {change}")
             print("Thank you! Have a wonderful day!")
-            option = input("\nBack to Home: (Y/N)? ")
+            option = yes_no_input("\nBack to Home: (Y/N)? ")
             if option.upper() == "Y":
                 break
 

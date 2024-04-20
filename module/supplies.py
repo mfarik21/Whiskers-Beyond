@@ -10,8 +10,9 @@ from utils.helper import (
     dict_to_str,
     format_currency,
     get_index,
-    get_int_input,
+    integer_input,
     is_valid_choice,
+    yes_no_input,
 )
 from utils.interface import clear_screen, show_title
 
@@ -57,11 +58,11 @@ def module():
 
             if SuppliesChoice(choice) == SuppliesChoice.ADD_NEW:
                 show_catalog()
-                choice = get_int_input(
+                choice = integer_input(
                     "Enter the product number you'd like: ", len(supplies)
                 )
 
-                qty = get_int_input("Enter the quantity you'd like: ")
+                qty = integer_input("Enter the quantity you'd like: ")
 
                 idx = get_index(choice)
 
@@ -73,7 +74,7 @@ def module():
                     err_msg = f"Insufficient stock for item {idx}. Available quantity: {avail_stock}"
 
             elif SuppliesChoice(choice) == SuppliesChoice.REMOVE:
-                num = get_int_input(
+                num = integer_input(
                     "Enter the basket number of the item you want to remove: ",
                     len(basket),
                 )
@@ -81,7 +82,9 @@ def module():
                 remove_from_basket(idx)
 
             elif SuppliesChoice(choice) == SuppliesChoice.CLEAR:
-                option = input("Are you sure you want to clear your basket: (Y/N)?")
+                option = yes_no_input(
+                    "Are you sure you want to clear your basket: (Y/N)?"
+                )
                 if option.upper() == "Y":
                     clear_basket()
 
@@ -116,6 +119,33 @@ def show_catalog():
     ]
 
     print(tabulate(formatted_data, headers=headers, tablefmt="simple_outline"))
+
+
+def add_item():
+    print("Please enter item specification below: ")
+    name = input("Product Name: ")
+    category = input("Category: ")
+    sub_category = input("Sub Category: ")
+    type = input("Type: ")
+    size = input("Size: ")
+    price = input("Price: ")
+    stock = input("Stock: ")
+
+    supplies.append(
+        {
+            "name": name,
+            "category": category,
+            "sub_category": sub_category,
+            "type": type,
+            "size": size,
+            "stock": stock,
+            "price": price,
+        }
+    )
+
+
+def update_stock(idx, stock):
+    supplies[idx]["stock"] = stock
 
 
 def display_basket():
