@@ -45,8 +45,11 @@ def yes_no_input(prompt):
             print("Invalid choice! Please enter either Y or N.")
 
 
-def is_valid_num_input(num: int, len: int) -> bool:
-    return num > 0 and num <= len
+def is_valid_num_input(num: int, max: int = None) -> bool:
+    if max:
+        return num > 0 and num <= max
+    else:
+        return num > 0
 
 
 def is_valid_qty_input(qty: int) -> bool:

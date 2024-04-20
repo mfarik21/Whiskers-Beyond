@@ -11,6 +11,7 @@ grooming = {
                 {
                     "name": "Basic Grooming with Anti-Lice/Anti-Fungal Treatment",
                     "price": 75000,
+                    "is_visible": True,
                 },
                 {"name": "Complete Grooming", "price": 85000},
             ],
@@ -20,6 +21,7 @@ grooming = {
                 {
                     "name": "Basic Grooming with Anti-Lice/Anti-Fungal Treatment",
                     "price": 110000,
+                    "is_visible": True,
                 },
                 {"name": "Complete Grooming", "price": 120000},
             ],
@@ -27,19 +29,21 @@ grooming = {
         "adds_on": {
             "weight <= 5kg": [
                 {"name": "Shaving", "price": 85000},
-                {"name": "Brushing & Teeth Cleaning", "price": 25000},
                 {
-                    "name": "Skin Treatment",
-                    "price": 90000,
+                    "name": "Brushing & Teeth Cleaning",
+                    "price": 25000,
+                    "is_visible": True,
                 },
+                {"name": "Skin Treatment", "price": 90000},
             ],
             "weight > 5kg": [
                 {"name": "Shaving", "price": 150000},
-                {"name": "Brushing & Teeth Cleaning", "price": 25000},
                 {
-                    "name": "Skin Treatment",
-                    "price": 125000,
+                    "name": "Brushing & Teeth Cleaning",
+                    "price": 25000,
+                    "is_visible": True,
                 },
+                {"name": "Skin Treatment", "price": 125000},
             ],
         },
     },
@@ -51,12 +55,16 @@ grooming = {
                 {
                     "name": "Basic Grooming with Anti-Lice/Anti-Fungal Treatment",
                     "price": 105000,
+                    "is_visible": True,
                 },
                 {"name": "Complete Grooming", "price": 120000},
             ],
             "medium": [
                 {"name": "Dry Grooming", "price": 75000},
-                {"name": "Basic Grooming", "price": 100000},
+                {
+                    "name": "Basic Grooming",
+                    "price": 100000,
+                },
                 {
                     "name": "Basic Grooming with Anti-Lice/Anti-Fungal Treatment",
                     "price": 135000,
@@ -128,63 +136,88 @@ hotel = {
 
 clinic = {
     "cat": [
-        {"treatment": "Cat Neutering", "desc": "", "price": 300000, "unit": ""},
-        {"treatment": "Doctor's Consultation", "desc": "", "price": 250000, "unit": ""},
-        {"treatment": "USG", "desc": "", "price": 120000, "unit": ""},
-        {"treatment": "Cat Minor Surgery", "desc": "", "price": 350000, "unit": ""},
-        {"treatment": "Cat Major Surgery", "desc": "", "price": 600000, "unit": ""},
+        {"treatment": "Cat Neutering", "desc": "", "price": 300000, "is_visible": True},
+        {
+            "treatment": "Doctor's Consultation",
+            "desc": "",
+            "price": 250000,
+            "is_visible": True,
+        },
+        {"treatment": "USG", "desc": "", "price": 120000, "is_visible": True},
+        {
+            "treatment": "Cat Minor Surgery",
+            "desc": "",
+            "price": 350000,
+            "is_visible": True,
+        },
+        {
+            "treatment": "Cat Major Surgery",
+            "desc": "",
+            "price": 600000,
+            "is_visible": True,
+        },
         {
             "treatment": "Tricat Vaccination",
             "desc": "For Feline panleukopenia, Feline rhinotracheitis, Feline calicivirus",
             "price": 250000,
-            "unit": "",
+            "is_visible": True,
         },
         {
             "treatment": "Tetracat Vaccination",
             "desc": "For Feline panleukopenia, Feline rhinotracheitis, Feline calicivirus, Chlamydia",
             "price": 210000,
-            "unit": "",
+            "is_visible": True,
         },
     ],
     "dog": [
-        {"treatment": "Dog Neutering", "desc": "", "price": 2000000, "unit": ""},
-        {"treatment": "Doctor's Consultation", "desc": "", "price": 250000, "unit": ""},
-        {"treatment": "USG", "desc": "", "price": 120000, "unit": ""},
+        {
+            "treatment": "Dog Neutering",
+            "desc": "",
+            "price": 2000000,
+            "is_visible": True,
+        },
+        {
+            "treatment": "Doctor's Consultation",
+            "desc": "",
+            "price": 250000,
+            "is_visible": True,
+        },
+        {"treatment": "USG", "desc": "", "price": 120000, "is_visible": True},
         {
             "treatment": "Dog Mijor Surgery",
             "desc": "",
             "price": 900000,
-            "unit": "",
+            "is_visible": True,
         },
         {
             "treatment": "Dog Major Surgery",
             "desc": "",
             "price": 1500000,
-            "unit": "",
+            "is_visible": True,
         },
         {
             "treatment": "DP Vaccination",
             "desc": "For Distemper and Parvovirus",
             "price": 200000,
-            "unit": "",
+            "is_visible": True,
         },
         {
             "treatment": "PiBr Vaccination",
             "desc": "For Parainfluenza dan Bordetella",
             "price": 1500000,
-            "unit": "",
+            "is_visible": True,
         },
         {
             "treatment": "DHLPI Vaccination",
             "desc": "For Distemper, Hepatitis, Leptospirosis, Parvovirus, dan Rabies 2",
             "price": 225000,
-            "unit": "",
+            "is_visible": True,
         },
         {
             "treatment": "Rabies Vaccination",
             "desc": "For Ra",
             "price": 1500000,
-            "unit": "",
+            "is_visible": True,
         },
     ],
 }
@@ -390,5 +423,25 @@ supplies = [
         "size": "Size in cm: 57 x 44 x 38",
         "price": 385000,
         "stock": 10,
+    },
+]
+
+
+promo = [
+    {
+        "name": "Sayang Anabul",
+        "code": "SAYANGANABUL",
+        "discount_amount": 50000,
+        "discount_percentage": None,
+        "min_purchase": 500000,
+        "quota": 5,
+    },
+    {
+        "name": "Happy Holiday",
+        "code": "HAPPYHOLIDAY10",
+        "discount_amount": None,
+        "discount_percentage": 10,
+        "min_purchase": 300000,
+        "quota": 5,
     },
 ]

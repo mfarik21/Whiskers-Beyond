@@ -19,7 +19,7 @@ from utils.interface import clear_screen, show_title
 basket = list()
 
 
-class PetChoice(Enum):
+class PetKind(Enum):
     CAT = 1
     DOG = 2
 
@@ -92,10 +92,8 @@ def checkout_treatment():
     choice = input("Enter the number corresponding to your choice: ")
     choice = cast_to_int(choice)
 
-    if is_valid_choice(choice, PetChoice):
-        pet_kind = (
-            PetChoice.CAT if PetChoice(choice) == PetChoice.CAT else PetChoice.DOG
-        )
+    if is_valid_choice(choice, PetKind):
+        pet_kind = PetKind.CAT if PetKind(choice) == PetKind.CAT else PetKind.DOG
         name = input(f"What is your {pet_kind.name.lower()}'s name?: ")
         show_treatment(pet_kind.name.lower())
 
@@ -115,13 +113,19 @@ def checkout_treatment():
         add_to_basket(chosen_treatment)
 
 
-def show_treatment(pet_kind):
+def show_treatment(pet_kind, is_visible=True):
     headers = [
         "#",
         "Treatment Name",
         "Decription",
         "Price",
     ]
+
+    # Filter treatment list based on visibility
+    filtered_treatment_list = [
+        item for item in clinic[pet_kind] if item.get("is_visible", False) == is_visible
+    ]
+
     formatted_data = [
         [
             idx,
@@ -129,10 +133,14 @@ def show_treatment(pet_kind):
             item["desc"],
             format_currency(item["price"]),
         ]
-        for idx, item in enumerate(clinic[pet_kind], start=1)
+        for idx, item in enumerate(filtered_treatment_list, start=1)
     ]
 
     print(tabulate(formatted_data, headers=headers, tablefmt="simple_outline"))
+
+
+def set_visibility(pet_kind, idx, visibility):
+    clinic[pet_kind.name.lower()][idx] = visibility
 
 
 def display_basket():

@@ -144,8 +144,12 @@ def add_item():
     )
 
 
-def update_stock(idx, stock):
-    supplies[idx]["stock"] = stock
+def update_stock(idx, qty):
+    supplies[idx]["stock"] = qty
+
+
+def delete(idx):
+    del supplies[idx]
 
 
 def display_basket():
@@ -192,6 +196,7 @@ def clear_basket():
 def map_basket_to_invoice():
     return [
         [
+            item["id"],
             "Supplies",
             item["name"],
             dict_to_str(
@@ -215,3 +220,6 @@ def get_total_price():
         for item in get_basket():
             total_price += item["qty"] * item["price"]
     return total_price
+
+
+def deduct_stock(idx, )

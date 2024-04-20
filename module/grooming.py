@@ -19,7 +19,7 @@ from utils.interface import clear_screen, show_title
 basket = list()
 
 
-class PetChoice(Enum):
+class PetKind(Enum):
     CAT = 1
     DOG = 2
 
@@ -109,27 +109,25 @@ def checkout_service():
     choice = input("Enter the number corresponding to your choice: ")
     choice = cast_to_int(choice)
 
-    if is_valid_choice(choice, PetChoice):
-        pet_kind = (
-            PetChoice.CAT if PetChoice(choice) == PetChoice.CAT else PetChoice.DOG
-        )
+    if is_valid_choice(choice, PetKind):
+        pet_kind = PetKind.CAT if PetKind(choice) == PetKind.CAT else PetKind.DOG
         name = input(f"What is your {pet_kind.name.lower()}'s name?: ")
 
-        if pet_kind == PetChoice.CAT:
+        if pet_kind == PetKind.CAT:
             weight = int(input("How much does your cat weigh (in kg)? "))
-            spec_type = get_pet_specs(PetChoice.CAT, weight=weight)
+            spec_type = get_pet_specs(PetKind.CAT, weight=weight)
             spec_value = f"{weight}kg"
         else:
             size = input(
                 "Enter the dog's size (small/medium/large/extra large | S/M/L/XL): "
             )
-            spec_type = get_pet_specs(PetChoice.DOG, size=size.upper())
+            spec_type = get_pet_specs(PetKind.DOG, size=size.upper())
             spec_value = spec_type.title()
 
         chosen_service = {
             "kind": pet_kind.name.title(),
             "name": name,
-            "specs": {"weight" if pet_kind == PetChoice.CAT else "size": spec_value},
+            "specs": {"weight" if pet_kind == PetKind.CAT else "size": spec_value},
             "service": {},
         }
 
@@ -165,10 +163,10 @@ def checkout_service():
 
 def show_services(pet_choice, service_type, specs):
 
-    if pet_choice == PetChoice.CAT:
+    if pet_choice == PetKind.CAT:
         filtered_grooming_list = grooming["cat"][service_type][specs]
 
-    elif pet_choice == PetChoice.DOG:
+    elif pet_choice == PetKind.DOG:
         filtered_grooming_list = grooming["dog"][service_type][specs]
 
     headers = ["#", "Service Name", "Price"]
@@ -176,14 +174,15 @@ def show_services(pet_choice, service_type, specs):
         [idx, item["name"], format_currency(item["price"])]
         for idx, item in enumerate(filtered_grooming_list, start=1)
     ]
+
     print(tabulate(formatted_data, headers=headers, tablefmt="simple_outline"))
 
 
 def get_pet_specs(type: Enum, **kwargs):
-    if type == PetChoice.CAT:
+    if type == PetKind.CAT:
         weight = kwargs["weight"]
         return CatSpecs.LESS_EQ_5KG.value if weight <= 5 else CatSpecs.MORE_5KG.value
-    elif type == PetChoice.DOG:
+    elif type == PetKind.DOG:
         for specs in DogSpecs:
             if specs.name == kwargs["size"]:
                 return specs.value
