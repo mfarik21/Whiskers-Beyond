@@ -33,7 +33,11 @@ def print_invoice():
         "Subtotal",
     ]
     formatted_data = []
-    formatted_data = [[num] + arr[:] for num, arr in enumerate(get_invoice(), start=1)]
+
+    invoice = get_invoice()
+    for num, item in enumerate(invoice, start=1):
+        formatted_row = [num] + [value for key, value in item.items() if key != "id"]
+        formatted_data.append(formatted_row)
 
     print("Invoice:")
     print(tabulate(formatted_data, headers=headers, tablefmt="simple_outline"))
@@ -62,6 +66,13 @@ def payment():
             )
 
         else:
+            # Check Supplies item to deduct stock
+            filtered_treatment_list = [
+                item for item in get_invoice() if item["service"] == "Supplies"
+            ]
+            for item in filtered_treatment_list:
+                supplies.deduct_stock(item["id"], item["qty"])
+
             print(f"Here's your change: {change}")
             print("Thank you! Have a wonderful day!")
             option = yes_no_input("\nBack to Home: (Y/N)? ")

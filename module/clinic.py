@@ -172,16 +172,17 @@ def clear_basket():
 
 def map_basket_to_invoice():
     return [
-        [
-            "Clinic",
-            item["treatment"],
-            dict_to_str(
+        {
+            "id": None,
+            "service": "Clinic",
+            "name": item["treatment"],
+            "desc": dict_to_str(
                 {key: value for key, value in item.items() if key in ["kind", "name"]}
             ),
-            1,
-            format_currency(item["price"]),
-            format_currency(item["price"]),
-        ]
+            "qty": 1,
+            "price": format_currency(item["price"]),
+            "subtotal": format_currency(item["price"]),
+        }
         for item in get_basket()
     ]
 

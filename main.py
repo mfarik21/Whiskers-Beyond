@@ -1,7 +1,7 @@
 from enum import Enum
 from textwrap import dedent
 
-from module import clinic, grooming, hotel, supplies
+from module import clinic, grooming, hotel, supplies, admin
 from module.payment import get_invoice, payment, print_invoice
 from utils.helper import cast_to_int, integer_input, is_valid_choice, yes_no_input
 from utils.interface import clear_screen, show_title
@@ -14,6 +14,10 @@ class ServiceChoice(Enum):
     CLINIC = 4
     INVOICE = 5
     PAYMENT = 6
+
+
+ADMIN_SECRET_MENU = "***"
+
 
 def main():
     while True:
@@ -45,12 +49,12 @@ def main():
 
         print("0. Exit\n")
 
-        choice = integer_input(
-            "Enter the number corresponding to your choice: ", len(ServiceChoice)
-        )
-        choice = cast_to_int(choice)
+        choice = input("Enter the number corresponding to your choice: ")
 
-        if is_valid_choice(choice, ServiceChoice):
+        if choice == ADMIN_SECRET_MENU:
+            admin.module()
+
+        elif is_valid_choice(choice, ServiceChoice):
             if ServiceChoice(choice) == ServiceChoice.SUPPLIES:
                 supplies.module()
             elif ServiceChoice(choice) == ServiceChoice.GROOMING:

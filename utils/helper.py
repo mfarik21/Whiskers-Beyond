@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 from typing import Dict
 
@@ -79,3 +80,10 @@ def format_currency(amount: int) -> str:
 
 def dict_to_str(dict: Dict):
     return ", ".join(f"{key}: {value}" for key, value in dict.items())
+
+
+def generate_unique_id(length=8):
+    # Generate a UUID and convert it to a hexadecimal string
+    uuid_str = uuid.uuid4().hex
+    # Return the first 'length' characters of the hexadecimal string
+    return uuid_str[:length]

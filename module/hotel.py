@@ -225,16 +225,17 @@ def clear_basket():
 
 def map_basket_to_invoice():
     return [
-        [
-            "Hotel",
-            f"{ item['nights'] } night(s) stays",
-            dict_to_str(
+        {
+            "id": None,
+            "service": "Hotel",
+            "name": f"{ item['nights'] } night(s) stays",
+            "desc": dict_to_str(
                 {key: value for key, value in item.items() if key in ["kind", "name"]}
             ),
-            item["nights"],
-            format_currency(item["price"]),
-            format_currency(item["nights"] * item["price"]),
-        ]
+            "qty": item["nights"],
+            "price": format_currency(item["price"]),
+            "subtotal": format_currency(item["nights"] * item["price"]),
+        }
         for item in get_basket()
     ]
 

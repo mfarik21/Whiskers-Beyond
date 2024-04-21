@@ -9,6 +9,7 @@ from utils.helper import (
     cast_to_int,
     dict_to_str,
     format_currency,
+    generate_unique_id,
     get_index,
     integer_input,
     is_valid_choice,
@@ -133,6 +134,7 @@ def add_item():
 
     supplies.append(
         {
+            "id": generate_unique_id(),
             "name": name,
             "category": category,
             "sub_category": sub_category,
@@ -195,21 +197,21 @@ def clear_basket():
 
 def map_basket_to_invoice():
     return [
-        [
-            item["id"],
-            "Supplies",
-            item["name"],
-            dict_to_str(
+        {
+            "id": item["id"],
+            "service": "Supplies",
+            "name": item["name"],
+            "desc": dict_to_str(
                 {
                     key: value
                     for key, value in item.items()
                     if key in ["category", "sub_category", "type", "size"]
                 }
             ),
-            item["qty"],
-            format_currency(item["price"]),
-            format_currency(item["qty"] * item["price"]),
-        ]
+            "qty": item["qty"],
+            "price": format_currency(item["price"]),
+            "subtotal": format_currency(item["qty"] * item["price"]),
+        }
         for item in get_basket()
     ]
 
@@ -222,4 +224,7 @@ def get_total_price():
     return total_price
 
 
-def deduct_stock(idx, )
+def deduct_stock(id, qty):
+    for item in supplies:
+        if item.get("id") == id:
+            item["quota"] -= qty

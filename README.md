@@ -37,8 +37,7 @@ Additional Features and Enhancements:
 
 Todo:
 - Add validation in promo during payment
-- Add validation in promo on Admin CRUD 
-- Save repetitive wording to variable
+- Add validation in promo on Admin CRUD: make sure its unique
 - Subtract supplies stock and promo quota after transaction
 - Add hidden option to enter admin page
-
+- Save repetitive wording to variable

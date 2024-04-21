@@ -236,7 +236,6 @@ def clear_basket():
 
 
 def map_basket_to_invoice():
-
     output = []
 
     for item in get_basket():
@@ -250,20 +249,21 @@ def map_basket_to_invoice():
             price += addson_price
 
         output.append(
-            [
-                "Grooming",
-                svc_name,
-                dict_to_str(
+            {
+                "id": None,
+                "service": "Grooming",
+                "name": svc_name,
+                "desc": dict_to_str(
                     {
                         key: value
                         for key, value in item.items()
                         if key in ["kind", "name", "specs"]
                     }
                 ),
-                1,
-                format_currency(price),
-                format_currency(price),
-            ]
+                "qty": 1,
+                "price": format_currency(price),
+                "subtotal": format_currency(price),
+            }
         )
 
     return output
