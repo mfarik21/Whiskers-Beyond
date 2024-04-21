@@ -1,6 +1,6 @@
 from tabulate import tabulate
 
-from module import clinic, grooming, hotel, supplies
+from modules import clinic, grooming, hotel, supplies
 from utils.helper import format_currency, integer_input, yes_no_input
 
 
@@ -41,6 +41,9 @@ def print_invoice():
 
     print("Invoice:")
     print(tabulate(formatted_data, headers=headers, tablefmt="simple_outline"))
+    option = yes_no_input("Do you want to continue to payment: (Y/N)? ")
+    if option.upper() == "Y":
+        payment()
 
 
 def count_total_price():
@@ -54,27 +57,30 @@ def count_total_price():
 
 
 def payment():
-    while True:
-        total = count_total_price()
-        print(f"Your total purchase : {format_currency(total)}")
-        money = integer_input("Please enter the amount of money? ")
-        change = money - total
+    total = count_total_price()
+    if total > 0:
+        while True:
+            print(f"Your total purchase : {format_currency(total)}")
+            money = integer_input("Please enter the amount of money? ")
+            change = money - total
 
-        if money < total:
-            print(
-                f"Oops! It looks like your money isn't enough. You need {total - money} more. Please enter the correct amount!"
-            )
+            if money < total:
+                print(
+                    f"Oops! It looks like your money isn't enough. You need {total - money} more. Please enter the correct amount!"
+                )
 
-        else:
-            # Check Supplies item to deduct stock
-            filtered_treatment_list = [
-                item for item in get_invoice() if item["service"] == "Supplies"
-            ]
-            for item in filtered_treatment_list:
-                supplies.deduct_stock(item["id"], item["qty"])
+            else:
+                # Check Supplies item to deduct stock
+                filtered_treatment_list = [
+                    item for item in get_invoice() if item["service"] == "Supplies"
+                ]
+                for item in filtered_treatment_list:
+                    supplies.deduct_stock(item["id"], item["qty"])
 
-            print(f"Here's your change: {change}")
-            print("Thank you! Have a wonderful day!")
-            option = yes_no_input("\nBack to Home: (Y/N)? ")
-            if option.upper() == "Y":
+                print(f"Here's your change: {format_currency(change)}")
+                print("Thank you! Have a wonderful day!")
                 break
+    else:
+        print("You don't have any bills pending for payment at the moment.")
+
+    input("Enter any input to continue: ")

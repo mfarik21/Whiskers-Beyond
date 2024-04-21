@@ -4,14 +4,14 @@ from typing import Dict
 
 from tabulate import tabulate
 
-from services import hotel
+from services.hotel import hotel
 from utils.helper import (
-    cast_to_int,
     dict_to_str,
     format_currency,
     get_index,
     integer_input,
-    is_valid_choice,
+    menu_input,
+    string_input,
     yes_no_input,
 )
 from utils.interface import clear_screen, show_title
@@ -33,7 +33,7 @@ class DogSpecs(Enum):
     S = "small"
     M = "medium"
     L = "large"
-    XL = "extra large"
+    XL = "extra_large"
 
 
 class HotelChoice(Enum):
@@ -44,6 +44,7 @@ class HotelChoice(Enum):
 
 
 def module():
+    err_msg = ""
     while True:
         clear_screen()
         show_title("Pet Hotel")
@@ -74,7 +75,7 @@ def module():
             dedent(
                 """
             Options:
-            1. Add a revervation
+            1. Add a reservation
             2. Cancel a reservation
             3. Clear reservation
             0. Proceed and back to Home
@@ -82,63 +83,72 @@ def module():
             )
         )
 
+        if err_msg:
+            print(err_msg)
+            err_msg = ""
+
         choice = input("Enter the number corresponding to your choice: ")
-        choice = cast_to_int(choice)
+        choice, err = menu_input(choice, HotelChoice)
+        if err:
+            err_msg += err
+            continue
 
-        if is_valid_choice(choice, HotelChoice):
-            if HotelChoice(choice) == HotelChoice.ADD_NEW:
-                book_stays()
+        if HotelChoice(choice) == HotelChoice.ADD_NEW:
+            book_stays()
 
-            elif HotelChoice(choice) == HotelChoice.REMOVE:
-                num = integer_input(
-                    "Enter the basket number of the service you want to remove: ",
-                    len(basket),
-                )
-                idx = get_index(num)
-                remove_from_basket(idx)
+        elif HotelChoice(choice) == HotelChoice.REMOVE:
+            num = integer_input(
+                "Enter the basket number of the service you want to remove: ",
+                len(basket),
+            )
+            idx = get_index(num)
+            remove_from_basket(idx)
 
-            elif HotelChoice(choice) == HotelChoice.CLEAR:
-                option = yes_no_input(
-                    "Are you sure you want to clear your basket: (Y/N)? "
-                )
-                if option.upper() == "Y":
-                    clear_basket()
+        elif HotelChoice(choice) == HotelChoice.CLEAR:
+            clear_basket()
 
-            elif HotelChoice(choice) == HotelChoice.PROCEED:
-                break
-        else:
-            print("Invalid choice! Please select a valid option.")
+        elif HotelChoice(choice) == HotelChoice.PROCEED:
+            break
 
 
 def book_stays():
     print(
         dedent(
             """
-            What furry friend do you have?:
+            What kind of pet do you have?:
             1. Cat
             2. Dog
         """
         )
     )
-    choice = input("Enter the number corresponding to your choice: ")
-    choice = cast_to_int(choice)
+    while True:
+        choice, err = menu_input(
+            input("Enter the number corresponding to your choice: "), PetKind
+        )
+        if err:
+            print(err)
+            continue
 
-    if is_valid_choice(choice, PetKind):
         pet_kind = PetKind.CAT if PetKind(choice) == PetKind.CAT else PetKind.DOG
-        name = input(f"What is your {pet_kind.name.lower()}'s name?: ")
-
+        name = string_input(f"What is your {pet_kind.name.lower()}'s name?: ")
         nights = integer_input("How many nights will your pet stay? ")
 
         if pet_kind == PetKind.CAT:
-            weight = int(input("How much does your cat weigh (in kg)? "))
+            weight = integer_input("How much does your cat weigh (in kg)? ")
             spec_type = get_pet_specs(PetKind.CAT, weight=weight)
             spec_value = f"{weight}kg"
         else:
-            size = input(
-                "Enter the dog's size (small/medium/large/extra large | S/M/L/XL): "
-            )
-            spec_type = get_pet_specs(PetKind.DOG, size=size.upper())
-            spec_value = spec_type.title()
+            while True:
+                size = input(
+                    "Enter the dog's size (small/medium/large/extra large | S/M/L/XL): "
+                ).upper()
+                if size not in ["S", "M", "L", "XL"]:
+                    print("Please input a valid dog's size.")
+                    continue
+                else:
+                    spec_type = get_pet_specs(PetKind.DOG, size=size)
+                    spec_value = spec_type.title()
+                    break
 
         price = hotel[pet_kind.name.lower()][spec_type]
 
@@ -146,13 +156,14 @@ def book_stays():
             "kind": pet_kind.name.title(),
             "name": name,
             "nights": nights,
-            "specs": {"weight" if pet_kind == PetKind.CAT else "size": spec_value},
+            "specs": dict_to_str(
+                {"weight" if pet_kind == PetKind.CAT else "size": spec_value}
+            ),
             "price": price,
         }
 
         add_to_basket(reservation)
-    else:
-        print("Invalid choice! Please select a valid option.")
+        break
 
 
 def show_price_list():
@@ -220,7 +231,9 @@ def remove_from_basket(idx: int):
 
 
 def clear_basket():
-    basket.clear()
+    option = yes_no_input("Are you sure you want to clear your basket: (Y/N)? ")
+    if option.upper() == "Y":
+        basket.clear()
 
 
 def map_basket_to_invoice():

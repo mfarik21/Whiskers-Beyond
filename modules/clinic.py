@@ -4,14 +4,14 @@ from typing import Dict
 
 from tabulate import tabulate
 
-from services import clinic
+from services.clinic import clinic
 from utils.helper import (
-    cast_to_int,
     dict_to_str,
     format_currency,
     get_index,
     integer_input,
-    is_valid_choice,
+    menu_input,
+    string_input,
     yes_no_input,
 )
 from utils.interface import clear_screen, show_title
@@ -32,6 +32,7 @@ class ClinicChoice(Enum):
 
 
 def module():
+    err_msg = ""
     while True:
         clear_screen()
         show_title("Pet Clinic")
@@ -51,58 +52,64 @@ def module():
             )
         )
 
+        if err_msg:
+            print(err_msg)
+            err_msg = ""
+
         choice = input("Enter the number corresponding to your choice: ")
-        choice = cast_to_int(choice)
+        choice, err = menu_input(choice, ClinicChoice)
+        if err:
+            err_msg += err
+            continue
 
-        if is_valid_choice(choice, ClinicChoice):
-            if ClinicChoice(choice) == ClinicChoice.ADD_NEW:
-                checkout_treatment()
+        if ClinicChoice(choice) == ClinicChoice.ADD_NEW:
+            checkout_treatment()
 
-            elif ClinicChoice(choice) == ClinicChoice.REMOVE:
-                num = integer_input(
-                    "Enter the basket number of the service you want to remove: ",
-                    len(basket),
-                )
-                idx = get_index(num)
-                remove_from_basket(idx)
+        elif ClinicChoice(choice) == ClinicChoice.REMOVE:
+            num = integer_input(
+                "Enter the basket number of the service you want to remove: ",
+                len(basket),
+            )
+            if not basket:
+                err_msg += "Your basket is empty! Please add item to basket first!"
+            else:
+                remove_from_basket(get_index(num))
 
-            elif ClinicChoice(choice) == ClinicChoice.CLEAR:
-                option = yes_no_input(
-                    "Are you sure you want to clear your basket: (Y/N)? "
-                )
-                if option.upper() == "Y":
-                    clear_basket()
+        elif ClinicChoice(choice) == ClinicChoice.CLEAR:
+            clear_basket()
 
-            elif ClinicChoice(choice) == ClinicChoice.PROCEED:
-                break
-        else:
-            print("Invalid choice! Please select a valid option.")
+        elif ClinicChoice(choice) == ClinicChoice.PROCEED:
+            break
 
 
 def checkout_treatment():
     print(
         dedent(
             """
-            What furry friend do you have?:
+            What kind of pet do you have?:
             1. Cat
             2. Dog
         """
         )
     )
-    choice = input("Enter the number corresponding to your choice: ")
-    choice = cast_to_int(choice)
+    while True:
+        choice, err = menu_input(
+            input("Enter the number corresponding to your choice: "), PetKind
+        )
+        if err:
+            print(err)
+            continue
 
-    if is_valid_choice(choice, PetKind):
         pet_kind = PetKind.CAT if PetKind(choice) == PetKind.CAT else PetKind.DOG
-        name = input(f"What is your {pet_kind.name.lower()}'s name?: ")
+        name = string_input(f"What is your {pet_kind.name.lower()}'s name?: ")
         show_treatment(pet_kind.name.lower())
 
-        choice = integer_input(
+        treatment_choice = integer_input(
             "Enter the treatment number needed for your pet: ",
             len(clinic[pet_kind.name.lower()]),
         )
 
-        idx = get_index(choice)
+        idx = get_index(treatment_choice)
 
         chosen_treatment = {
             "kind": pet_kind.name.title(),
@@ -111,21 +118,23 @@ def checkout_treatment():
             "price": clinic[pet_kind.name.lower()][idx]["price"],
         }
         add_to_basket(chosen_treatment)
+        break
+
+
+def get_treatments(pet_kind, is_visible=True):
+    return [item for item in clinic[pet_kind] if item["is_visible"] == is_visible]
 
 
 def show_treatment(pet_kind, is_visible=True):
+    # Filter treatment list based on visibility
+    treatments = get_treatments(pet_kind, is_visible)
+
     headers = [
         "#",
         "Treatment Name",
         "Decription",
         "Price",
     ]
-
-    # Filter treatment list based on visibility
-    filtered_treatment_list = [
-        item for item in clinic[pet_kind] if item.get("is_visible", False) == is_visible
-    ]
-
     formatted_data = [
         [
             idx,
@@ -133,14 +142,16 @@ def show_treatment(pet_kind, is_visible=True):
             item["desc"],
             format_currency(item["price"]),
         ]
-        for idx, item in enumerate(filtered_treatment_list, start=1)
+        for idx, item in enumerate(treatments, start=1)
     ]
 
     print(tabulate(formatted_data, headers=headers, tablefmt="simple_outline"))
 
 
-def set_visibility(pet_kind, idx, visibility):
-    clinic[pet_kind.name.lower()][idx] = visibility
+def set_visibility(pet_kind, treatment_id, visibility):
+    for item in clinic[pet_kind]:
+        if item.get("id") == treatment_id:
+            item["is_visible"] = visibility
 
 
 def display_basket():
@@ -167,13 +178,15 @@ def remove_from_basket(idx: int):
 
 
 def clear_basket():
-    basket.clear()
+    option = yes_no_input("Are you sure you want to clear your basket: (Y/N)? ")
+    if option.upper() == "Y":
+        basket.clear()
 
 
 def map_basket_to_invoice():
     return [
         {
-            "id": None,
+            "id": item["id"],
             "service": "Clinic",
             "name": item["treatment"],
             "desc": dict_to_str(

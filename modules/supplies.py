@@ -4,15 +4,15 @@ from typing import Dict
 
 from tabulate import tabulate
 
-from services import supplies
+from services.supplies import supplies
 from utils.helper import (
-    cast_to_int,
     dict_to_str,
     format_currency,
     generate_unique_id,
     get_index,
     integer_input,
-    is_valid_choice,
+    menu_input,
+    string_input,
     yes_no_input,
 )
 from utils.interface import clear_screen, show_title
@@ -34,9 +34,6 @@ def module():
         clear_screen()
         show_title("Pet Supplies")
 
-        if err_msg:
-            print(err_msg)
-
         if basket:
             display_basket()
 
@@ -52,17 +49,24 @@ def module():
             )
         )
 
+        if err_msg:
+            print(err_msg)
+            err_msg = ""
+
         choice = input("Enter the number corresponding to your choice: ")
-        choice = cast_to_int(choice)
 
-        if is_valid_choice(choice, SuppliesChoice):
+        choice, err = menu_input(choice, SuppliesChoice)
+        if err:
+            err_msg += err
+            continue
 
-            if SuppliesChoice(choice) == SuppliesChoice.ADD_NEW:
-                show_catalog()
-                choice = integer_input(
-                    "Enter the product number you'd like: ", len(supplies)
-                )
+        if SuppliesChoice(choice) == SuppliesChoice.ADD_NEW:
+            show_catalog()
+            choice = integer_input(
+                "Enter the product number you'd like: ", len(supplies)
+            )
 
+            while True:
                 qty = integer_input("Enter the quantity you'd like: ")
 
                 idx = get_index(choice)
@@ -71,32 +75,35 @@ def module():
                 if is_sufficient:
                     item = dict(supplies[idx], qty=qty)
                     add_to_basket(item)
+                    break
                 else:
-                    err_msg = f"Insufficient stock for item {idx}. Available quantity: {avail_stock}"
+                    print(
+                        f"Insufficient stock for item {choice}. Available quantity: {avail_stock}"
+                    )
 
-            elif SuppliesChoice(choice) == SuppliesChoice.REMOVE:
-                num = integer_input(
-                    "Enter the basket number of the item you want to remove: ",
-                    len(basket),
-                )
-                idx = get_index(num)
-                remove_from_basket(idx)
+        elif SuppliesChoice(choice) == SuppliesChoice.REMOVE:
+            num = integer_input(
+                "Enter the basket number of the item you want to remove: ",
+                len(basket),
+            )
 
-            elif SuppliesChoice(choice) == SuppliesChoice.CLEAR:
-                option = yes_no_input(
-                    "Are you sure you want to clear your basket: (Y/N)?"
-                )
-                if option.upper() == "Y":
-                    clear_basket()
+            if not basket:
+                err_msg += "Your basket is empty! Please add item to basket first!"
+            else:
+                remove_from_basket(get_index(num))
 
-            elif SuppliesChoice(choice) == SuppliesChoice.PROCEED:
-                break
+        elif SuppliesChoice(choice) == SuppliesChoice.CLEAR:
+            clear_basket()
 
-        else:
-            print("Invalid choice! Please select a valid option.")
+        elif SuppliesChoice(choice) == SuppliesChoice.PROCEED:
+            break
 
 
-def show_catalog():
+def get_supplies():
+    return supplies
+
+
+def show_catalog(show_stock=False):
     headers = [
         "#",
         "Product Name",
@@ -105,7 +112,8 @@ def show_catalog():
         "Type",
         "Size",
         "Price",
-    ]
+    ] + (["Stock"] if show_stock else [])
+
     formatted_data = [
         [
             idx,
@@ -116,6 +124,7 @@ def show_catalog():
             item["size"],
             format_currency(item["price"]),
         ]
+        + ([item["stock"]] if show_stock else [])
         for idx, item in enumerate(supplies, start=1)
     ]
 
@@ -124,13 +133,13 @@ def show_catalog():
 
 def add_item():
     print("Please enter item specification below: ")
-    name = input("Product Name: ")
-    category = input("Category: ")
-    sub_category = input("Sub Category: ")
-    type = input("Type: ")
-    size = input("Size: ")
-    price = input("Price: ")
-    stock = input("Stock: ")
+    name = string_input("Product Name: ")
+    category = string_input("Category: ")
+    sub_category = string_input("Sub Category: ")
+    type = string_input("Type: ")
+    size = string_input("Size: ")
+    price = integer_input("Price: ")
+    stock = integer_input("Stock: ")
 
     supplies.append(
         {
@@ -176,6 +185,7 @@ def get_basket():
 
 
 def add_to_basket(item: Dict):
+
     # Handling adding item that already exists
     list_item = [item["name"] for item in basket]
     if item["name"] in list_item:
@@ -188,11 +198,16 @@ def add_to_basket(item: Dict):
 
 
 def remove_from_basket(idx: int):
-    del basket[idx]
+    if idx < len(basket):
+        del basket[idx]
+    else:
+        print("Please enter correct number from basket!")
 
 
 def clear_basket():
-    basket.clear()
+    option = yes_no_input("Are you sure you want to clear your basket: (Y/N)? ")
+    if option.upper() == "Y":
+        basket.clear()
 
 
 def map_basket_to_invoice():
@@ -227,4 +242,4 @@ def get_total_price():
 def deduct_stock(id, qty):
     for item in supplies:
         if item.get("id") == id:
-            item["quota"] -= qty
+            item["stock"] -= qty

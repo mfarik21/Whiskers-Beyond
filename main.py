@@ -1,9 +1,9 @@
 from enum import Enum
 from textwrap import dedent
 
-from module import clinic, grooming, hotel, supplies, admin
-from module.payment import get_invoice, payment, print_invoice
-from utils.helper import cast_to_int, integer_input, is_valid_choice, yes_no_input
+from modules import admin, clinic, grooming, hotel, supplies
+from modules.payment import get_invoice, payment, print_invoice
+from utils.helper import menu_input
 from utils.interface import clear_screen, show_title
 
 
@@ -14,12 +14,14 @@ class ServiceChoice(Enum):
     CLINIC = 4
     INVOICE = 5
     PAYMENT = 6
+    EXIT = 0
 
 
 ADMIN_SECRET_MENU = "***"
 
 
 def main():
+    err_msg = ""
     while True:
         clear_screen()
         show_title()
@@ -49,32 +51,34 @@ def main():
 
         print("0. Exit\n")
 
+        if err_msg:
+            print(err_msg)
+            err_msg = ""
+
         choice = input("Enter the number corresponding to your choice: ")
 
         if choice == ADMIN_SECRET_MENU:
             admin.module()
+            continue
 
-        elif is_valid_choice(choice, ServiceChoice):
-            if ServiceChoice(choice) == ServiceChoice.SUPPLIES:
-                supplies.module()
-            elif ServiceChoice(choice) == ServiceChoice.GROOMING:
-                grooming.module()
-            elif ServiceChoice(choice) == ServiceChoice.HOTEL:
-                hotel.module()
-            elif ServiceChoice(choice) == ServiceChoice.CLINIC:
-                clinic.module()
-            elif ServiceChoice(choice) == ServiceChoice.INVOICE:
-                print_invoice()
-                option = yes_no_input("Do you want to continue to payment: (Y/N)? ")
-                if option.upper() == "Y":
-                    payment()
-                else:
-                    continue
-            elif ServiceChoice(choice) == ServiceChoice.PAYMENT:
-                payment()
+        choice, err = menu_input(choice, ServiceChoice)
+        if err:
+            err_msg += err
+            continue
 
-        else:
-            print("Invalid choice! Please select a valid option.")
+        service_modules = {
+            ServiceChoice.SUPPLIES: supplies.module,
+            ServiceChoice.GROOMING: grooming.module,
+            ServiceChoice.HOTEL: hotel.module,
+            ServiceChoice.CLINIC: clinic.module,
+            ServiceChoice.INVOICE: print_invoice,
+            ServiceChoice.PAYMENT: payment,
+            ServiceChoice.EXIT: exit,
+        }
+
+        service_function = service_modules.get(ServiceChoice(choice))
+        if service_function:
+            service_function()
 
 
 if __name__ == "__main__":

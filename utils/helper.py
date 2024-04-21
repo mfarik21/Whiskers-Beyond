@@ -11,6 +11,18 @@ def cast_to_int(input_str):
         return None
 
 
+def menu_input(choice: str, choices: Enum) -> tuple[int, str]:
+    err_msg = "Invalid choice! Please select a valid option."
+    try:
+        choice_int = int(choice)
+        if choices(choice_int) in choices:
+            return choice_int, ""
+        else:
+            return None, err_msg
+    except ValueError:
+        return None, err_msg
+
+
 def is_valid_choice(choice: int, choices: Enum) -> bool:
     try:
         return choices(choice) in choices
@@ -20,21 +32,36 @@ def is_valid_choice(choice: int, choices: Enum) -> bool:
 
 def integer_input(prompt: str, maximum: int = None):
     while True:
-        try:
-            user_input = int(input(prompt))
-
-            if maximum:
-                if 1 <= user_input <= maximum:
-                    return user_input
-                else:
-                    print(
-                        f"Invalid choice! Please select a number between 1 and {maximum}."
-                    )
-            else:
-                return user_input
-
-        except ValueError:
+        user_input = input(prompt)
+        if not user_input.isdigit():
             print("Invalid choice! Please select a valid number.")
+            continue
+
+        user_input = int(user_input)
+        if user_input <= 0:
+            print("Invalid choice! Please select a positive number.")
+            continue
+
+        if maximum and not 1 <= user_input <= maximum:
+            if maximum > 1:
+                print(
+                    f"Invalid choice! Please select a number between 1 and {maximum}."
+                )
+            else:
+                print(f"Invalid choice! Please select a number.")
+            continue
+
+        return user_input
+
+
+def string_input(prompt: str):
+    while True:
+        user_input = input(prompt)
+        if not user_input or not user_input.strip():
+            print("Invalid choice! Please enter a non-empty text.")
+            continue
+
+        return user_input
 
 
 def yes_no_input(prompt):

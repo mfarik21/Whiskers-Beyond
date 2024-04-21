@@ -4,14 +4,14 @@ from typing import Dict
 
 from tabulate import tabulate
 
-from services import grooming
+from services.grooming import grooming
 from utils.helper import (
-    cast_to_int,
     dict_to_str,
     format_currency,
     get_index,
     integer_input,
-    is_valid_choice,
+    menu_input,
+    string_input,
     yes_no_input,
 )
 from utils.interface import clear_screen, show_title
@@ -38,7 +38,7 @@ class DogSpecs(Enum):
     S = "small"
     M = "medium"
     L = "large"
-    XL = "extra large"
+    XL = "extra_large"
 
 
 class GroomingChoice(Enum):
@@ -49,6 +49,7 @@ class GroomingChoice(Enum):
 
 
 def module():
+    err_msg = ""
     while True:
         clear_screen()
         show_title("Pet Grooming")
@@ -68,61 +69,73 @@ def module():
             )
         )
 
+        if err_msg:
+            print(err_msg)
+            err_msg = ""
+
         choice = input("Enter the number corresponding to your choice: ")
-        choice = cast_to_int(choice)
+        choice, err = menu_input(choice, GroomingChoice)
+        if err:
+            err_msg += err
+            continue
 
-        if is_valid_choice(choice, GroomingChoice):
-            if GroomingChoice(choice) == GroomingChoice.ADD_NEW:
-                checkout_service()
+        if GroomingChoice(choice) == GroomingChoice.ADD_NEW:
+            checkout_service()
 
-            elif GroomingChoice(choice) == GroomingChoice.REMOVE:
-                num = integer_input(
-                    "Enter the basket number of the service you want to remove: ",
-                    len(basket),
-                )
-                idx = get_index(num)
-                remove_from_basket(idx)
+        elif GroomingChoice(choice) == GroomingChoice.REMOVE:
+            num = integer_input(
+                "Enter the basket number of the service you want to remove: ",
+                len(basket),
+            )
+            if not basket:
+                err_msg += "Your basket is empty! Please add item to basket first!"
+            else:
+                remove_from_basket(get_index(num))
 
-            elif GroomingChoice(choice) == GroomingChoice.CLEAR:
-                option = yes_no_input(
-                    "Are you sure you want to clear your basket: (Y/N)? "
-                )
-                if option.upper() == "Y":
-                    clear_basket()
+        elif GroomingChoice(choice) == GroomingChoice.CLEAR:
+            clear_basket()
 
-            elif GroomingChoice(choice) == GroomingChoice.PROCEED:
-                break
-        else:
-            print("Invalid choice! Please select a valid option.")
+        elif GroomingChoice(choice) == GroomingChoice.PROCEED:
+            break
 
 
 def checkout_service():
     print(
         dedent(
             """
-            What furry friend do you have?:
+            What kind of pet do you have?:
             1. Cat
             2. Dog
         """
         )
     )
-    choice = input("Enter the number corresponding to your choice: ")
-    choice = cast_to_int(choice)
+    while True:
+        choice, err = menu_input(
+            input("Enter the number corresponding to your choice: "), PetKind
+        )
+        if err:
+            print(err)
+            continue
 
-    if is_valid_choice(choice, PetKind):
         pet_kind = PetKind.CAT if PetKind(choice) == PetKind.CAT else PetKind.DOG
-        name = input(f"What is your {pet_kind.name.lower()}'s name?: ")
+        name = string_input(f"What is your {pet_kind.name.lower()}'s name?: ")
 
         if pet_kind == PetKind.CAT:
-            weight = int(input("How much does your cat weigh (in kg)? "))
+            weight = integer_input("How much does your cat weigh (in kg)? ")
             spec_type = get_pet_specs(PetKind.CAT, weight=weight)
             spec_value = f"{weight}kg"
         else:
-            size = input(
-                "Enter the dog's size (small/medium/large/extra large | S/M/L/XL): "
-            )
-            spec_type = get_pet_specs(PetKind.DOG, size=size.upper())
-            spec_value = spec_type.title()
+            while True:
+                size = input(
+                    "Enter the dog's size (small/medium/large/extra large | S/M/L/XL): "
+                ).upper()
+                if size not in ["S", "M", "L", "XL"]:
+                    print("Please input a valid dog's size.")
+                    continue
+                else:
+                    spec_type = get_pet_specs(PetKind.DOG, size=size)
+                    spec_value = spec_type.title()
+                    break
 
         chosen_service = {
             "kind": pet_kind.name.title(),
@@ -138,18 +151,21 @@ def checkout_service():
             len(grooming[pet_kind.name.lower()][ServiceType.MAIN.value][spec_type]),
         )
         idx = get_index(prod_num)
-
         chosen_service["service"]["main"] = grooming[pet_kind.name.lower()][
             ServiceType.MAIN.value
         ][spec_type][idx]
 
-        option = yes_no_input("Do you want to add additional service: (Y/N)? ")
+        option = yes_no_input("Do you want to add an additional service? (Y/N): ")
         if option.upper() == "Y":
-            print("Adds on: ")
+            print("Add-ons: ")
             show_services(pet_kind, ServiceType.ADDS_ON.value, spec_type)
             prod_num = integer_input(
                 "Enter the product number you'd like: ",
-                len(grooming[pet_kind.name.lower()][ServiceType.ADDS_ON.value]),
+                len(
+                    grooming[pet_kind.name.lower()][ServiceType.ADDS_ON.value][
+                        spec_type
+                    ]
+                ),
             )
             idx = get_index(prod_num)
             chosen_service["service"]["adds_on"] = grooming[pet_kind.name.lower()][
@@ -157,8 +173,7 @@ def checkout_service():
             ][spec_type][idx]
 
         add_to_basket(chosen_service)
-    else:
-        print("Invalid choice! Please select a valid option.")
+        break
 
 
 def show_services(pet_choice, service_type, specs):
@@ -232,7 +247,9 @@ def remove_from_basket(idx: int):
 
 
 def clear_basket():
-    basket.clear()
+    option = yes_no_input("Are you sure you want to clear your basket: (Y/N)? ")
+    if option.upper() == "Y":
+        basket.clear()
 
 
 def map_basket_to_invoice():
