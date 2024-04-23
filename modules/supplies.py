@@ -41,7 +41,7 @@ def module():
             dedent(
                 """
             Options:
-            1. Add new items to basket
+            1. Add a new item to basket
             2. Remove an item from basket
             3. Clear basket
             0. Proceed and back to Home 

@@ -186,7 +186,7 @@ def clear_basket():
 def map_basket_to_invoice():
     return [
         {
-            "id": item["id"],
+            "id": None,
             "service": "Clinic",
             "name": item["treatment"],
             "desc": dict_to_str(

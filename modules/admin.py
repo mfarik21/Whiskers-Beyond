@@ -36,8 +36,8 @@ def module():
             dedent(
                 """
             Supplies:
-            1. Show supplies catalog
-            2. Add new items to Supplies
+            1. Show Supplies catalog
+            2. Add a new item to Supplies
             3. Update an item stock in Supplies
             4. Delete an item in Supplies
 
